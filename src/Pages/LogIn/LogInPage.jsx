@@ -37,23 +37,16 @@ export default function SignIn() {
 
   const toCheckIfUserAuthorized = (event) => {
     event.preventDefault();
-    if (
-      setInstanceInput !== "" &&
-      setTokenInput !== "" &&
-      setPhoneInput !== ""
-    ) {
+    if (instanceInput !== "" && tokenInput !== "" && phoneInput !== "") {
       axios
         .get(
           `https://api.green-api.com/waInstance${instanceInput}/getStateInstance/${tokenInput}`
         )
-        .then((response) => {
-          if (response.status === 200) {
-            // Handle successful response
-            toast.success("Everything is correct"); // Show success notification
-          } else {
-            // Handle other status codes
-            toast.error("An error occurred"); // Show error notification
-          }
+        .then((res) => {
+          console.log(res.data);
+        })
+        .catch((err) => {
+          console.log(err);
         });
     }
   };

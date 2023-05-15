@@ -43,7 +43,7 @@ function Chat() {
   };
 
   useEffect(() => {
-    toGetAllMessages();
+    // toGetAllMessages();
   }, []);
 
   useEffect(() => {
@@ -86,7 +86,7 @@ function Chat() {
               timestamp: resDataBody.timestamp,
               type: resDataBody.typeWebhook,
             };
-            setMessagesArr(messagesArr.push(notificSms));
+            setMessagesArr([...messagesArr, notificSms]);
           }
           axios
             .delete(
