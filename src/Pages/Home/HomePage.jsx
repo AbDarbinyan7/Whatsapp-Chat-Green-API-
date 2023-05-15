@@ -25,7 +25,7 @@ export const Users = [
 export const UserContext = createContext(null);
 
 function HomePage() {
-  const [userContext, setUserContext] = useState(null);
+  const [userContext, setUserContext] = useState();
   return (
     <UserContext.Provider value={{ userContext, setUserContext }}>
       <div className="home_page">

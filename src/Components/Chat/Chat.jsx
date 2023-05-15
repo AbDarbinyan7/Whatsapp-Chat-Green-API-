@@ -27,16 +27,20 @@ const CHATID = "37494676058@c.us";
 function Chat() {
   const { userContext, setUserContext } = useContext(UserContext);
 
-  const [userState, setUserState] = useState();
   const [smsState, setSmsState] = useState(null);
   const [smsFlagState, setFlagSmsState] = useState();
   const [smsInputValue, setSmsInputValue] = useState();
   const [messagesArr, setMessagesArr] = useState([]);
   const [idSms, setIdSms] = useState();
+  const [receiptId, setReceiptId] = useState();
 
   const chatRef = useRef(null);
 
   const el = document.querySelector(".chat__body__messages");
+
+  const padZero = (value) => {
+    return value < 10 ? `0${value}` : value;
+  };
 
   useEffect(() => {
     toGetAllMessages();
@@ -50,23 +54,19 @@ function Chat() {
 
   useEffect(() => {
     if (messagesArr.length) {
-      console.log(messagesArr, "ayooo");
+      console.log(messagesArr);
     }
   }, [messagesArr]);
 
   useEffect(() => {
-    toReseiveNotification();
-  }, []);
+    const interval = setInterval(() => {
+      // toReseiveNotification();
+    }, 8000);
 
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     console.log("ayo");
-  //   }, 5000);
-
-  //   return () => {
-  //     clearInterval(interval);
-  //   };
-  // }, []);
+    return () => {
+      clearInterval(interval);
+    };
+  }, [messagesArr]);
 
   function toReseiveNotification() {
     axios
@@ -75,7 +75,6 @@ function Chat() {
       )
       .then((res) => {
         if (res.data) {
-          console.log(res.data);
           if (res.data.body.typeWebhook === "incomingMessageReceived") {
             let resDataBody = res.data.body;
             let notificSms = {
@@ -102,6 +101,8 @@ function Chat() {
       });
   }
 
+  function toDeleteNotification(id) {}
+
   function toGetAllMessages() {
     let allMessagesArr = [];
     axios
@@ -109,7 +110,7 @@ function Chat() {
         `https://api.green-api.com/waInstance${IDINSTANCE}/getChatHistory/${APITOKENINSTANSE}`,
         {
           chatId: "37494676058@c.us",
-          count: 10,
+          count: 20,
         }
       )
       .then((res) => {
@@ -169,26 +170,29 @@ function Chat() {
       });
   }
 
-  function toGetLocalTmeNow() {
-    let time = new Date(Date.now() + 0 * 60 * 60 * 1000).toLocaleTimeString(
-      "en-AM",
-      {
-        hour: "numeric",
-        hour12: false,
-        minute: "numeric",
-      }
+  const toGetLocalTmeNow = () => {
+    const currentTime = new Date();
+    const timestamp = currentTime.getTime();
+
+    const timeString = new Date(timestamp).toLocaleTimeString("en-US", {
+      hour12: false,
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const convertTo24HourFormat = (timestamp) => {
+    const timeOptions = {
+      hour12: false,
+      hour: "2-digit",
+      minute: "2-digit",
+    };
+
+    const timeString = new Date(timestamp * 1000).toLocaleTimeString(
+      "en-US",
+      timeOptions
     );
-
-    return time;
-  }
-
-  const scrollToBottom = () => {
-    if (chatRef.current) {
-      const lastMessage = chatRef.current.lastElementChild;
-      if (lastMessage) {
-        lastMessage.scrollIntoView({ behavior: "smooth" });
-      }
-    }
+    return `${timeString}`;
   };
 
   return (
@@ -233,7 +237,7 @@ function Chat() {
                     {sms.textMessage}
                     {
                       <span className="chat__body__messages_list__outgoing_sms__timestamp">
-                        {sms.time}
+                        {convertTo24HourFormat(sms.timestamp)}
                         {sms.type !== "outgoing" ||
                           (sms.type !== "outgoingAPIMessageReceived" && (
                             <DoneAllOutlinedIcon

@@ -63,7 +63,7 @@
 
       &__outgoing_sms {
         position: relative;
-        padding: 6px 50px 6px 14px;
+        padding: 6px 50px 8px 9px;
         margin: 5px 0;
         background-color: #d9fdd3;
         width: fit-content;
@@ -73,13 +73,14 @@
         align-items: center;
         margin-left: auto;
         max-width: 460px;
+        font-size: 15px;
 
         &__timestamp {
           position: absolute;
           display: flex;
           gap: 3px;
           align-items: center;
-          font-size: xx-small;
+          font-size: 11px;
           bottom: 0px;
           right: 5px;
           color: rgb(158, 158, 158);
@@ -89,6 +90,7 @@
       &__incoming_sms {
         margin-left: initial;
         background-color: white;
+        padding: 6px 37px 8px 9px;
       }
     }
   }
