@@ -14,6 +14,7 @@ import EmojiEmotionsOutlinedIcon from "@mui/icons-material/EmojiEmotionsOutlined
 import AttachFileOutlinedIcon from "@mui/icons-material/AttachFileOutlined";
 import KeyboardVoiceIcon from "@mui/icons-material/KeyboardVoice";
 import { UserContext, Users } from "../../Pages/Home/HomePage";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 import "./SideBar.scss";
 
@@ -80,7 +81,7 @@ function SideBar() {
               </div>
               <div className="side_bar__users__user__underline"></div>
               <div className="side_bar__users__user__chevron">
-                {/* <i className="fa-solid fa-chevron-down"></i> */}
+                <ExpandMoreIcon fontSize="large" color="disabled" />
               </div>
             </div>
           );

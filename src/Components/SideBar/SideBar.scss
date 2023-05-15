@@ -40,10 +40,9 @@
   &__users {
     font-family: "Roboto", sans-serif;
     font-weight: lighter;
-    overflow-y: scroll;
-    max-height: 100vh;
+    overflow-y: auto;
+    min-height: 100vh;
     background-color: white;
-    // border-right: 2px solid #d1d7db;
 
     &::-webkit-scrollbar {
       width: 5px;
@@ -66,19 +65,19 @@
     }
 
     &__user {
-      overflow-x: hidden;
       display: flex;
-      padding: 10px 20px;
+      padding: 17px 20px;
       gap: 10px;
       position: relative;
+      overflow-y: hidden;
 
       &:hover {
         background: #f0f2f5;
         cursor: pointer;
+
         .side_bar__users__user__chevron {
-          display: block;
           opacity: 1;
-          right: 22px;
+          right: 12px;
         }
       }
 
@@ -117,8 +116,8 @@
 
       &__chevron {
         position: absolute;
-        bottom: 12px;
-        right: 20px;
+        bottom: -2px;
+        right: 9px;
         transition: 0.2s;
         opacity: 0;
       }

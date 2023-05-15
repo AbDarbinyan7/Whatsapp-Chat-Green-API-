@@ -12,7 +12,7 @@ import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { Link as MaterialLink } from "@mui/material";
 
 function Copyright(props) {
@@ -36,6 +36,8 @@ function Copyright(props) {
 const theme = createTheme();
 
 export default function SignIn() {
+  const navigate = useNavigate();
+
   const handleSubmit = (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -44,6 +46,10 @@ export default function SignIn() {
       password: data.get("password"),
     });
   };
+
+  function onNavigate() {
+    navigate("/whatsapp");
+  }
 
   return (
     <ThemeProvider theme={theme}>
@@ -93,16 +99,15 @@ export default function SignIn() {
               control={<Checkbox value="remember" color="primary" />}
               label="Remember me"
             />
-            <RouterLink to="/whatsapp">
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                sx={{ mt: 3, mb: 2 }}
-              >
-                Sign In
-              </Button>
-            </RouterLink>
+            <Button
+              onClick={onNavigate}
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{ mt: 3, mb: 2 }}
+            >
+              Sign In
+            </Button>
             <Grid container>
               <Grid item xs>
                 <MaterialLink href="#" variant="body2">

@@ -20,8 +20,9 @@ import { UserContext } from "../../Pages/Home/HomePage";
 
 const messagesArr = [];
 
-const IDINSTANCE = 1101820135;
-const APITOKENINSTANSE = "3945021c508d4c79bf3bf54562ec601178d43da81b3847628d";
+const IDINSTANCE = 1101820813;
+const APITOKENINSTANSE = "296abde5df1a4e719f85899926bc8566604822eab57044a7a4";
+const CHATID = "37494676058@c.us";
 
 function Chat() {
   const { userContext, setUserContext } = useContext(UserContext);
@@ -29,12 +30,144 @@ function Chat() {
   const [userState, setUserState] = useState();
   const [smsState, setSmsState] = useState(null);
   const [smsFlagState, setFlagSmsState] = useState();
-  const [smsInputState, setSmsInputState] = useState();
+  const [smsInputValue, setSmsInputValue] = useState();
   const [messagesArr, setMessagesArr] = useState([]);
+  const [idSms, setIdSms] = useState();
 
   const chatRef = useRef(null);
 
   const el = document.querySelector(".chat__body__messages");
+
+  useEffect(() => {
+    toGetAllMessages();
+  }, []);
+
+  useEffect(() => {
+    if (idSms && smsInputValue) {
+      toSmsPushInArr(idSms, smsInputValue);
+    }
+  }, [idSms, smsInputValue]);
+
+  useEffect(() => {
+    if (messagesArr.length) {
+      console.log(messagesArr, "ayooo");
+    }
+  }, [messagesArr]);
+
+  useEffect(() => {
+    toReseiveNotification();
+  }, []);
+
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     console.log("ayo");
+  //   }, 5000);
+
+  //   return () => {
+  //     clearInterval(interval);
+  //   };
+  // }, []);
+
+  function toReseiveNotification() {
+    axios
+      .get(
+        `https://api.green-api.com/waInstance${IDINSTANCE}/receiveNotification/${APITOKENINSTANSE}`
+      )
+      .then((res) => {
+        if (res.data) {
+          console.log(res.data);
+          if (res.data.body.typeWebhook === "incomingMessageReceived") {
+            let resDataBody = res.data.body;
+            let notificSms = {
+              chatId: resDataBody.senderData.chatId,
+              textMessage: resDataBody.messageData.textMessageData.textMessage,
+              idInstance: resDataBody.instanceData.idInstance,
+              idMessage: resDataBody.idMessage,
+              statusMessage: "read",
+              timestamp: resDataBody.timestamp,
+              type: resDataBody.typeWebhook,
+            };
+            setMessagesArr(messagesArr.push(notificSms));
+          }
+          axios
+            .delete(
+              `https://api.green-api.com/waInstance${IDINSTANCE}/deleteNotification/${APITOKENINSTANSE}/${res.data.receiptId}`
+            )
+            .then((res) => {
+              if (res.data.result) {
+                toReseiveNotification();
+              }
+            });
+        }
+      });
+  }
+
+  function toGetAllMessages() {
+    let allMessagesArr = [];
+    axios
+      .post(
+        `https://api.green-api.com/waInstance${IDINSTANCE}/getChatHistory/${APITOKENINSTANSE}`,
+        {
+          chatId: "37494676058@c.us",
+          count: 10,
+        }
+      )
+      .then((res) => {
+        if (res.data) {
+          res.data.map((sms) => {
+            let oldMessage = {
+              chatId: sms.chatId,
+              idInstance: IDINSTANCE,
+              idMessage: sms.idMessage,
+              textMessage: sms.textMessage,
+              timestamp: sms.timestamp,
+              type: sms.type,
+            };
+            allMessagesArr.push(oldMessage);
+          });
+        }
+        allMessagesArr.reverse();
+        setMessagesArr(allMessagesArr);
+      });
+  }
+
+  function toSetValues(event) {
+    if (event.target.value && event.target.value !== "") {
+      toSendMessage(event.target.value);
+      setSmsInputValue(event.target.value);
+      event.target.value = "";
+    }
+  }
+
+  function toSmsPushInArr(id, text) {
+    setMessagesArr([
+      ...messagesArr,
+      {
+        chatId: CHATID,
+        textMessage: text,
+        time: toGetLocalTmeNow(),
+        type: "outgoing",
+        idMessage: idSms,
+      },
+    ]);
+    setSmsInputValue(null);
+  }
+
+  function toSendMessage(value) {
+    axios
+      .post(
+        `https://api.green-api.com/waInstance${IDINSTANCE}/SendMessage/${APITOKENINSTANSE}`,
+        {
+          chatId: "37494676058@c.us",
+          message: value,
+        }
+      )
+      .then((res) => {
+        if (res.data) {
+          setIdSms(res.data.idMessage);
+        }
+      });
+  }
 
   function toGetLocalTmeNow() {
     let time = new Date(Date.now() + 0 * 60 * 60 * 1000).toLocaleTimeString(
@@ -57,75 +190,6 @@ function Chat() {
       }
     }
   };
-
-  function toSetValues(event) {
-    // toSendMessage(event.target.value);
-    if (event.target.value && event.target.value !== "") {
-      setMessagesArr([
-        ...messagesArr,
-        {
-          receiver: userContext.name,
-          textMessage: event.target.value,
-          time: toGetLocalTmeNow(),
-          type: "outgoing",
-          sendByApi: true,
-        },
-      ]);
-    }
-
-    console.log("asdasdad");
-    event.target.value = "";
-  }
-
-  function toSendMessage(value) {
-    let idSms = null;
-    axios
-      .post(
-        `https://api.green-api.com/waInstance${IDINSTANCE}/SendMessage/${APITOKENINSTANSE}`,
-        {
-          chatId: "37494676058@c.us",
-          message: value,
-        }
-      )
-      .then((res) => {
-        if (res.data) {
-          idSms = res.data.idMessage;
-        }
-      });
-  }
-
-  useEffect(() => {
-    // toGetAllMessages();
-  }, []);
-
-  function toGetAllMessages() {
-    let allMessagesArr = [];
-    axios
-      .post(
-        `https://api.green-api.com/waInstance${IDINSTANCE}/getChatHistory/${APITOKENINSTANSE}`,
-        {
-          chatId: "37494676058@c.us",
-          count: 50,
-        }
-      )
-      .then((res) => {
-        if (res.data) {
-          res.data.map((sms) => {
-            allMessagesArr.push({
-              chatId: sms.chatId,
-              idMessage: sms.idMessage,
-              sendByApi: sms.sendByApi,
-              statusMessage: sms.statusMessage,
-              textMessage: sms.textMessage,
-              timestamp: sms.timestamp,
-              type: sms.type,
-            });
-          });
-        }
-        allMessagesArr.reverse();
-        setMessagesArr(allMessagesArr);
-      });
-  }
 
   return (
     <div className="chat">
@@ -152,13 +216,16 @@ function Chat() {
       <ScrollableFeed className="chat__body">
         <div className="chat__body__messages_list" ref={chatRef}>
           {messagesArr.length !== 0 &&
+            Array.isArray(messagesArr) &&
             messagesArr.map((sms, index) => {
               if (sms.textMessage) {
                 return (
                   <div
                     key={index}
                     className={
-                      sms.type == "outgoing" && sms.sendByApi
+                      sms.type == "outgoing" ||
+                      (sms.type == "outgoingAPIMessageReceived" &&
+                        sms.sendByApi)
                         ? "chat__body__messages_list__outgoing_sms"
                         : "chat__body__messages_list__outgoing_sms chat__body__messages_list__incoming_sms"
                     }
@@ -167,10 +234,13 @@ function Chat() {
                     {
                       <span className="chat__body__messages_list__outgoing_sms__timestamp">
                         {sms.time}
-                        <DoneAllOutlinedIcon
-                          style={{ fontSize: 15 }}
-                          color="disabled"
-                        />
+                        {sms.type !== "outgoing" ||
+                          (sms.type !== "outgoingAPIMessageReceived" && (
+                            <DoneAllOutlinedIcon
+                              style={{ fontSize: 15 }}
+                              color="disabled"
+                            />
+                          ))}
                       </span>
                     }
                   </div>
