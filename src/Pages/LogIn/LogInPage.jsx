@@ -19,8 +19,11 @@ import { Link as MaterialLink } from "@mui/material";
 import { USERIDS } from "../../Routes/AppRoutes";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const theme = createTheme();
+
+toast.configure();
 
 export default function SignIn() {
   const { userIds, setUserIds } = useContext(USERIDS);
@@ -29,6 +32,8 @@ export default function SignIn() {
   const [tokenInput, setTokenInput] = useState("");
   const [phoneInput, setPhoneInput] = useState("");
 
+  const [invalidVaule, setInvalidVaule] = useState(false);
+
   const instanceREf = useRef(null);
   const tokenRef = useRef(null);
   const phoneRef = useRef(null);
@@ -36,17 +41,31 @@ export default function SignIn() {
   const navigate = useNavigate();
 
   const toCheckIfUserAuthorized = (event) => {
-    event.preventDefault();
+    event?.preventDefault();
     if (instanceInput !== "" && tokenInput !== "" && phoneInput !== "") {
       axios
         .get(
           `https://api.green-api.com/waInstance${instanceInput}/getStateInstance/${tokenInput}`
         )
         .then((res) => {
-          console.log(res.data);
+          if (res.data) {
+            if (res.data.stateInstance === "authorized") {
+              setUserIds({
+                ...userIds,
+                IDINSTANCE: instanceInput,
+                APITOKENINSTANSE: tokenInput,
+                CHATID: phoneInput + "@c.us",
+              });
+              onNavigate();
+            }
+          }
         })
-        .catch((err) => {
-          console.log(err);
+        .catch((error) => {
+          if (error) {
+            setInvalidVaule(true);
+          } else {
+            setInvalidVaule(false);
+          }
         });
     }
   };
@@ -67,6 +86,11 @@ export default function SignIn() {
 
   function handleInputChange3(e) {
     const value = e.target.value;
+    var charCode = e.which ? e.which : e.keyCode;
+    if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+      return false;
+    }
+    return true;
     setPhoneInput(value);
   }
 
@@ -100,28 +124,30 @@ export default function SignIn() {
             fullWidth
             label="Id Instance"
             autoFocus
+            error={invalidVaule}
           />
           <TextField
             onChange={(e) => handleInputChange2(e)}
             ref={tokenRef}
             margin="normal"
-            required
             fullWidth
             label="Api Token Instance"
+            error={invalidVaule}
           />
           <TextField
             onChange={(e) => handleInputChange3(e)}
             ref={phoneRef}
             margin="normal"
-            required
-            fullWidth
-            label="Phone Number"
+            label="Chat ID (please write only numbers)"
             variant="outlined"
             fullWidth
+            error={invalidVaule}
+            pattern="[0-9]*"
+            inputMode="numeric"
           />
 
           <Button
-            // onClick={onNavigate}
+            onClick={() => toCheckIfUserAuthorized()}
             type="submit"
             fullWidth
             variant="contained"
@@ -129,6 +155,13 @@ export default function SignIn() {
           >
             Sign In
           </Button>
+          {invalidVaule && (
+            <Box mt={1}>
+              <Typography color="error">
+                One or more values are invalid.
+              </Typography>
+            </Box>
+          )}
         </Box>
       </Box>
     </Container>

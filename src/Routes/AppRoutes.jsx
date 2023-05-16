@@ -1,7 +1,7 @@
 import { Routes, Route, BrowserRouter } from "react-router-dom";
 import HomePage from "../Pages/Home/HomePage";
 import LoginPage from "../Pages/LogIn/LogInPage";
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 
 export const USERIDS = createContext({
   IDINSTANCE: null,
@@ -11,6 +11,7 @@ export const USERIDS = createContext({
 
 function AppRoutes() {
   const [userIds, setUserIds] = useState(null);
+
 
   return (
     <USERIDS.Provider value={{ userIds, setUserIds }}>

@@ -17,15 +17,17 @@ import axios from "axios";
 import ScrollContainer from "react-indiana-drag-scroll";
 import ScrollableFeed from "react-scrollable-feed";
 import { UserContext } from "../../Pages/Home/HomePage";
+import { USERIDS } from "../../Routes/AppRoutes";
 
 const messagesArr = [];
 
-const IDINSTANCE = 1101820813;
-const APITOKENINSTANSE = "296abde5df1a4e719f85899926bc8566604822eab57044a7a4";
-const CHATID = "37494676058@c.us";
+// const IDINSTANCE = 1101820813;
+// const APITOKENINSTANSE = "296abde5df1a4e719f85899926bc8566604822eab57044a7a4";
+// const CHATID = "37494676058@c.us";
 
 function Chat() {
   const { userContext, setUserContext } = useContext(UserContext);
+  const { userIds, setUserIds } = useContext(USERIDS);
 
   const [smsState, setSmsState] = useState(null);
   const [smsFlagState, setFlagSmsState] = useState();
@@ -52,11 +54,11 @@ function Chat() {
     }
   }, [idSms, smsInputValue]);
 
-  useEffect(() => {
-    if (messagesArr.length) {
-      console.log(messagesArr);
-    }
-  }, [messagesArr]);
+  // useEffect(() => {
+  //   if (messagesArr.length) {
+  //     console.log(messagesArr);
+  //   }
+  // }, [messagesArr]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -68,10 +70,14 @@ function Chat() {
     };
   }, [messagesArr]);
 
+  useEffect(() => {
+    console.log(userIds);
+  }, [userIds]);
+
   function toReseiveNotification() {
     axios
       .get(
-        `https://api.green-api.com/waInstance${IDINSTANCE}/receiveNotification/${APITOKENINSTANSE}`
+        `https://api.green-api.com/waInstance${userIds.IDINSTANCE}/receiveNotification/${userIds.APITOKENINSTANSE}`
       )
       .then((res) => {
         if (res.data) {
@@ -90,7 +96,7 @@ function Chat() {
           }
           axios
             .delete(
-              `https://api.green-api.com/waInstance${IDINSTANCE}/deleteNotification/${APITOKENINSTANSE}/${res.data.receiptId}`
+              `https://api.green-api.com/waInstance${userIds.IDINSTANCE}/deleteNotification/${userIds.APITOKENINSTANSE}/${res.data.receiptId}`
             )
             .then((res) => {
               if (res.data.result) {
@@ -107,7 +113,7 @@ function Chat() {
     let allMessagesArr = [];
     axios
       .post(
-        `https://api.green-api.com/waInstance${IDINSTANCE}/getChatHistory/${APITOKENINSTANSE}`,
+        `https://api.green-api.com/waInstance${userIds.IDINSTANCE}/getChatHistory/${userIds.APITOKENINSTANSE}`,
         {
           chatId: "37494676058@c.us",
           count: 20,
@@ -118,7 +124,7 @@ function Chat() {
           res.data.map((sms) => {
             let oldMessage = {
               chatId: sms.chatId,
-              idInstance: IDINSTANCE,
+              idInstance: userIds.IDINSTANCE,
               idMessage: sms.idMessage,
               textMessage: sms.textMessage,
               timestamp: sms.timestamp,
@@ -144,7 +150,7 @@ function Chat() {
     setMessagesArr([
       ...messagesArr,
       {
-        chatId: CHATID,
+        chatId: userIds.CHATID,
         textMessage: text,
         time: toGetLocalTmeNow(),
         type: "outgoing",
@@ -157,7 +163,7 @@ function Chat() {
   function toSendMessage(value) {
     axios
       .post(
-        `https://api.green-api.com/waInstance${IDINSTANCE}/SendMessage/${APITOKENINSTANSE}`,
+        `https://api.green-api.com/waInstance${userIds.IDINSTANCE}/SendMessage/${userIds.APITOKENINSTANSE}`,
         {
           chatId: "37494676058@c.us",
           message: value,
