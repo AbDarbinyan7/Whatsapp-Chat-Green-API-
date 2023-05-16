@@ -16,18 +16,15 @@ import "./Chat.scss";
 import axios from "axios";
 import ScrollContainer from "react-indiana-drag-scroll";
 import ScrollableFeed from "react-scrollable-feed";
-import { UserContext } from "../../Pages/Home/HomePage";
-import { USERIDS } from "../../Routes/AppRoutes";
+import { USERIDS, UserContext, UsersContext } from "../../Routes/AppRoutes";
+import { useNavigate } from "react-router-dom";
 
 const messagesArr = [];
-
-// const IDINSTANCE = 1101820813;
-// const APITOKENINSTANSE = "296abde5df1a4e719f85899926bc8566604822eab57044a7a4";
-// const CHATID = "37494676058@c.us";
 
 function Chat() {
   const { userContext, setUserContext } = useContext(UserContext);
   const { userIds, setUserIds } = useContext(USERIDS);
+  const { usersContext, setUsersContext } = useContext(UsersContext);
 
   const [smsState, setSmsState] = useState(null);
   const [smsFlagState, setFlagSmsState] = useState();
@@ -37,6 +34,7 @@ function Chat() {
   const [receiptId, setReceiptId] = useState();
 
   const chatRef = useRef(null);
+  const navigate = useNavigate();
 
   const el = document.querySelector(".chat__body__messages");
 
@@ -45,8 +43,24 @@ function Chat() {
   };
 
   useEffect(() => {
-    // toGetAllMessages();
+    if (usersContext && usersContext.length == 1) {
+      setUserContext(usersContext[0]);
+    }
+  }, [usersContext]);
+
+  useEffect(() => {
+    getItemInLocalStorage("userIds");
   }, []);
+
+  useEffect(() => {
+    if (userIds) {
+      if (userIds.IDINSTANCE && userIds.APITOKENINSTANSE && userIds.CHATID) {
+        getInfoContact();
+
+        // toGetAllMessages();
+      }
+    }
+  }, [userIds]);
 
   useEffect(() => {
     if (idSms && smsInputValue) {
@@ -54,49 +68,71 @@ function Chat() {
     }
   }, [idSms, smsInputValue]);
 
+  function getInfoContact() {
+    axios
+      .post(
+        `https://api.green-api.com/waInstance${userIds?.IDINSTANCE}/GetContactInfo/${userIds?.APITOKENINSTANSE}`,
+        {
+          chatId: userIds?.CHATID,
+        }
+      )
+      .then((res) => {
+        if (res) {
+          let userInfo = {
+            name: res?.data?.name,
+            chatId: res?.data?.chatId,
+            avatar: res?.data?.avatar,
+          };
+          setUsersContext([...usersContext, userInfo]);
+          localStorage.setItem("users", JSON.stringify(userInfo));
+        }
+      });
+  }
+
+  function getItemInLocalStorage(value) {
+    let afterRefreshIds = localStorage.getItem(value);
+    if (afterRefreshIds) {
+      let parseAfterRefreshIds = JSON.parse(afterRefreshIds);
+      setUserIds(parseAfterRefreshIds);
+    } else {
+      navigate("/");
+    }
+  }
+
   // useEffect(() => {
-  //   if (messagesArr.length) {
-  //     console.log(messagesArr);
-  //   }
+  //   const interval = setInterval(() => {
+  //     toReseiveNotification();
+  //   }, 8000);
+
+  //   return () => {
+  //     clearInterval(interval);
+  //   };
   // }, [messagesArr]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // toReseiveNotification();
-    }, 8000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [messagesArr]);
-
-  useEffect(() => {
-    console.log(userIds);
-  }, [userIds]);
 
   function toReseiveNotification() {
     axios
       .get(
-        `https://api.green-api.com/waInstance${userIds.IDINSTANCE}/receiveNotification/${userIds.APITOKENINSTANSE}`
+        `https://api.green-api.com/waInstance${userIds?.IDINSTANCE}/receiveNotification/${userIds?.APITOKENINSTANSE}`
       )
       .then((res) => {
-        if (res.data) {
+        if (res) {
           if (res.data.body.typeWebhook === "incomingMessageReceived") {
-            let resDataBody = res.data.body;
+            let resDataBody = res?.data?.body;
             let notificSms = {
-              chatId: resDataBody.senderData.chatId,
-              textMessage: resDataBody.messageData.textMessageData.textMessage,
-              idInstance: resDataBody.instanceData.idInstance,
-              idMessage: resDataBody.idMessage,
+              chatId: resDataBody?.senderData?.chatId,
+              textMessage:
+                resDataBody?.messageData?.textMessageData?.textMessage,
+              idInstance: resDataBody?.instanceData?.idInstance,
+              idMessage: resDataBody?.idMessage,
               statusMessage: "read",
-              timestamp: resDataBody.timestamp,
-              type: resDataBody.typeWebhook,
+              timestamp: resDataBody?.timestamp,
+              type: resDataBody?.typeWebhook,
             };
             setMessagesArr([...messagesArr, notificSms]);
           }
           axios
             .delete(
-              `https://api.green-api.com/waInstance${userIds.IDINSTANCE}/deleteNotification/${userIds.APITOKENINSTANSE}/${res.data.receiptId}`
+              `https://api.green-api.com/waInstance${userIds?.IDINSTANCE}/deleteNotification/${userIds?.APITOKENINSTANSE}/${res.data.receiptId}`
             )
             .then((res) => {
               if (res.data.result) {
@@ -107,15 +143,13 @@ function Chat() {
       });
   }
 
-  function toDeleteNotification(id) {}
-
   function toGetAllMessages() {
     let allMessagesArr = [];
     axios
       .post(
-        `https://api.green-api.com/waInstance${userIds.IDINSTANCE}/getChatHistory/${userIds.APITOKENINSTANSE}`,
+        `https://api.green-api.com/waInstance${userIds?.IDINSTANCE}/getChatHistory/${userIds?.APITOKENINSTANSE}`,
         {
-          chatId: "37494676058@c.us",
+          chatId: userIds?.CHATID,
           count: 20,
         }
       )
@@ -123,12 +157,12 @@ function Chat() {
         if (res.data) {
           res.data.map((sms) => {
             let oldMessage = {
-              chatId: sms.chatId,
-              idInstance: userIds.IDINSTANCE,
-              idMessage: sms.idMessage,
-              textMessage: sms.textMessage,
-              timestamp: sms.timestamp,
-              type: sms.type,
+              chatId: sms?.chatId,
+              idInstance: userIds?.IDINSTANCE,
+              idMessage: sms?.idMessage,
+              textMessage: sms?.textMessage,
+              timestamp: sms?.timestamp,
+              type: sms?.type,
             };
             allMessagesArr.push(oldMessage);
           });
@@ -150,7 +184,7 @@ function Chat() {
     setMessagesArr([
       ...messagesArr,
       {
-        chatId: userIds.CHATID,
+        chatId: userIds?.CHATID,
         textMessage: text,
         time: toGetLocalTmeNow(),
         type: "outgoing",
@@ -163,9 +197,9 @@ function Chat() {
   function toSendMessage(value) {
     axios
       .post(
-        `https://api.green-api.com/waInstance${userIds.IDINSTANCE}/SendMessage/${userIds.APITOKENINSTANSE}`,
+        `https://api.green-api.com/waInstance${userIds?.IDINSTANCE}/SendMessage/${userIds?.APITOKENINSTANSE}`,
         {
-          chatId: "37494676058@c.us",
+          chatId: userIds?.CHATID,
           message: value,
         }
       )
@@ -205,7 +239,7 @@ function Chat() {
     <div className="chat">
       <div className="chat__header">
         <div className="chat__header__left_side">
-          <Avatar />
+          <Avatar src={userContext?.avatar} alt="User Avatar" />
           <div className="chat__header__left_side__name">
             <p>{userContext?.name}</p>
           </div>

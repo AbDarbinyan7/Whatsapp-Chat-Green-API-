@@ -70,10 +70,11 @@
       gap: 10px;
       position: relative;
       overflow-y: hidden;
+      background: #f0f2f5;
 
       &:hover {
-        background: #f0f2f5;
         cursor: pointer;
+        background: white;
 
         .side_bar__users__user__chevron {
           opacity: 1;

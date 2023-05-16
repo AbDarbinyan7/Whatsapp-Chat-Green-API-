@@ -13,7 +13,7 @@ import AttachFileOutlinedIcon from "@mui/icons-material/AttachFileOutlined";
 import KeyboardVoiceIcon from "@mui/icons-material/KeyboardVoice";
 import SideBar from "../../Components/SideBar/SideBar";
 import Chat from "../../Components/Chat/Chat";
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 
 export const Users = [
   {
@@ -22,17 +22,12 @@ export const Users = [
   },
 ];
 
-export const UserContext = createContext(null);
-
 function HomePage() {
-  const [userContext, setUserContext] = useState();
   return (
-    <UserContext.Provider value={{ userContext, setUserContext }}>
-      <div className="home_page">
-        <SideBar />
-        <Chat />
-      </div>
-    </UserContext.Provider>
+    <div className="home_page">
+      <SideBar />
+      <Chat />
+    </div>
   );
 }
 

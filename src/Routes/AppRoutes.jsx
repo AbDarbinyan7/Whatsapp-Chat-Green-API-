@@ -9,16 +9,24 @@ export const USERIDS = createContext({
   CHATID: null,
 });
 
+export const UsersContext = createContext(null);
+export const UserContext = createContext([]);
+
 function AppRoutes() {
   const [userIds, setUserIds] = useState(null);
-
+  const [userContext, setUserContext] = useState();
+  const [usersContext, setUsersContext] = useState([]);
 
   return (
     <USERIDS.Provider value={{ userIds, setUserIds }}>
-      <Routes>
-        <Route path={"/"} element={<LoginPage />} />
-        <Route path={"/whatsapp"} element={<HomePage />} />
-      </Routes>
+      <UsersContext.Provider value={{ usersContext, setUsersContext }}>
+        <UserContext.Provider value={{ userContext, setUserContext }}>
+          <Routes>
+            <Route path={"/"} element={<LoginPage />} />
+            <Route path={"/whatsapp"} element={<HomePage />} />
+          </Routes>
+        </UserContext.Provider>
+      </UsersContext.Provider>
     </USERIDS.Provider>
   );
 }

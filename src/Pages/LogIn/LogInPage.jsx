@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useContext, useState, useRef } from "react";
+import { useContext, useState, useRef, useEffect } from "react";
 
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
@@ -31,6 +31,9 @@ export default function SignIn() {
   const [instanceInput, setInstanceInput] = useState("");
   const [tokenInput, setTokenInput] = useState("");
   const [phoneInput, setPhoneInput] = useState("");
+  const [phoneInWp, setPhoneInWp] = useState(null);
+  const [authorized, setAuthorized] = useState(null);
+  const [value, setValue] = useState("");
 
   const [invalidVaule, setInvalidVaule] = useState(false);
 
@@ -40,38 +43,83 @@ export default function SignIn() {
 
   const navigate = useNavigate();
 
+  useEffect(() => {
+    localStorage.clear();
+  }, []);
+
+  useEffect(() => {
+    checkAndNavigate();
+  }, [authorized, phoneInWp]);
+
   const toCheckIfUserAuthorized = (event) => {
     event?.preventDefault();
     if (instanceInput !== "" && tokenInput !== "" && phoneInput !== "") {
-      axios
-        .get(
-          `https://api.green-api.com/waInstance${instanceInput}/getStateInstance/${tokenInput}`
-        )
-        .then((res) => {
-          if (res.data) {
-            if (res.data.stateInstance === "authorized") {
-              setUserIds({
-                ...userIds,
-                IDINSTANCE: instanceInput,
-                APITOKENINSTANSE: tokenInput,
-                CHATID: phoneInput + "@c.us",
-              });
-              onNavigate();
-            }
-          }
-        })
-        .catch((error) => {
-          if (error) {
-            setInvalidVaule(true);
-          } else {
-            setInvalidVaule(false);
-          }
-        });
+      toCheckIds(instanceInput, tokenInput);
     }
   };
 
-  function onNavigate() {
-    navigate("/whatsapp");
+  function toCheckIds(instanceInput, tokenInput) {
+    toCheckPhoneNumber(phoneInput);
+    axios
+      .get(
+        `https://api.green-api.com/waInstance${instanceInput}/getStateInstance/${tokenInput}`
+      )
+      .then((res) => {
+        if (res.data) {
+          if (res.data.stateInstance === "authorized") {
+            setAuthorized(true);
+          }
+        }
+      })
+      .catch((error) => {
+        if (error) {
+          setInvalidVaule(true);
+        } else {
+          setInvalidVaule(false);
+        }
+      });
+  }
+
+  function checkAndNavigate() {
+    if (authorized && phoneInWp) {
+      let auhorizedUserIds = {
+        IDINSTANCE: instanceInput,
+        APITOKENINSTANSE: tokenInput,
+        CHATID: phoneInput + "@c.us",
+      };
+      localStorage.setItem("userIds", JSON.stringify(auhorizedUserIds));
+      navigate("/whatsapp");
+      setUserIds({
+        ...userIds,
+        auhorizedUserIds,
+      });
+    }
+  }
+
+  function toCheckPhoneNumber(phoneInput) {
+    axios
+      .post(
+        `https://api.green-api.com/waInstance${instanceInput}/checkWhatsapp/${tokenInput}`,
+        {
+          phoneNumber: phoneInput,
+        }
+      )
+      .then((res) => {
+        if (res) {
+          if (res.data.existsWhatsapp) {
+            setPhoneInWp(true);
+          } else {
+            setPhoneInWp(false);
+          }
+        }
+      })
+      .catch((error) => {
+        if (error) {
+          setInvalidVaule(true);
+        } else {
+          setInvalidVaule(false);
+        }
+      });
   }
 
   function handleInputChange(e) {
@@ -86,12 +134,9 @@ export default function SignIn() {
 
   function handleInputChange3(e) {
     const value = e.target.value;
-    var charCode = e.which ? e.which : e.keyCode;
-    if (charCode > 31 && (charCode < 48 || charCode > 57)) {
-      return false;
-    }
-    return true;
     setPhoneInput(value);
+    const userInput = e.target.value.replace(/\D/g, "");
+    setValue(userInput);
   }
 
   return (
@@ -113,7 +158,9 @@ export default function SignIn() {
         </Typography>
         <Box
           component="form"
-          onSubmit={toCheckIfUserAuthorized}
+          onSubmit={(e) => {
+            e.preventDefault();
+          }}
           noValidate
           sx={{ mt: 1 }}
         >
@@ -135,13 +182,14 @@ export default function SignIn() {
             error={invalidVaule}
           />
           <TextField
+            value={value}
             onChange={(e) => handleInputChange3(e)}
             ref={phoneRef}
             margin="normal"
             label="Chat ID (please write only numbers)"
             variant="outlined"
             fullWidth
-            error={invalidVaule}
+            error={phoneInWp === false}
             pattern="[0-9]*"
             inputMode="numeric"
           />

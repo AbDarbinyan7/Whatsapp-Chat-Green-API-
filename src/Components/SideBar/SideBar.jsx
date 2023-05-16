@@ -13,17 +13,21 @@ import FilterListOutlinedIcon from "@mui/icons-material/FilterListOutlined";
 import EmojiEmotionsOutlinedIcon from "@mui/icons-material/EmojiEmotionsOutlined";
 import AttachFileOutlinedIcon from "@mui/icons-material/AttachFileOutlined";
 import KeyboardVoiceIcon from "@mui/icons-material/KeyboardVoice";
-import { UserContext, Users } from "../../Pages/Home/HomePage";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 import "./SideBar.scss";
+import { USERIDS, UserContext, UsersContext } from "../../Routes/AppRoutes";
+import { Users } from "../../Pages/Home/HomePage";
+import axios from "axios";
 
 function SideBar() {
   const { userContext, setUserContext } = useContext(UserContext);
+  const { usersContext, setUsersContext } = useContext(UsersContext);
+  const { userIds, setUserIds } = useContext(USERIDS);
 
   useEffect(() => {
-    setUserContext(Users[0]);
-  }, []);
+    console.log(usersContext);
+  }, [usersContext]);
 
   return (
     <div className="side_bar">
@@ -58,34 +62,36 @@ function SideBar() {
         </IconButton>
       </div>
       <div className="side_bar__users">
-        {Users.map((user, index) => {
-          return (
-            <div
-              key={index}
-              className="side_bar__users__user"
-              onClick={(e) => {
-                setUserContext(user);
-              }}
-            >
-              <Avatar />
-              <div className="side_bar__users__user__description">
-                <div className="side_bar__users__user__description__name_time">
-                  <p>{user.name}</p>
-                  <div className="side_bar__users__user__description__name_time__time">
-                    02:42
+        {usersContext &&
+          Array.isArray(usersContext) &&
+          usersContext.map((user, index) => {
+            return (
+              <div
+                key={index}
+                className="side_bar__users__user"
+                onClick={(e) => {
+                  setUserContext(user);
+                }}
+              >
+                <Avatar src={user.avatar} alt="user Avatar" />
+                <div className="side_bar__users__user__description">
+                  <div className="side_bar__users__user__description__name_time">
+                    <p>{user?.name}</p>
+                    <div className="side_bar__users__user__description__name_time__time">
+                      02:42
+                    </div>
+                  </div>
+                  <div className="side_bar__users__user__description__text_nots">
+                    <p>Last message...</p>
                   </div>
                 </div>
-                <div className="side_bar__users__user__description__text_nots">
-                  <p>Last message...</p>
+                <div className="side_bar__users__user__underline"></div>
+                <div className="side_bar__users__user__chevron">
+                  <ExpandMoreIcon fontSize="large" color="disabled" />
                 </div>
               </div>
-              <div className="side_bar__users__user__underline"></div>
-              <div className="side_bar__users__user__chevron">
-                <ExpandMoreIcon fontSize="large" color="disabled" />
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
       </div>
     </div>
   );
