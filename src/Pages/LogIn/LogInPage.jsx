@@ -1,25 +1,18 @@
 import * as React from "react";
 import { useContext, useState, useRef, useEffect } from "react";
+import { Link as useNavigate } from "react-router-dom";
+import axios from "axios";
 
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
 import TextField from "@mui/material/TextField";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Checkbox from "@mui/material/Checkbox";
-import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
 
-import { Link as RouterLink, useNavigate } from "react-router-dom";
-import { Link as MaterialLink } from "@mui/material";
 import { USERIDS } from "../../Routes/AppRoutes";
-import axios from "axios";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 export default function SignIn() {
   const { userIds, setUserIds } = useContext(USERIDS);
@@ -30,7 +23,7 @@ export default function SignIn() {
   const [phoneInWp, setPhoneInWp] = useState(null);
   const [authorized, setAuthorized] = useState(null);
   const [value, setValue] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [instanseValue, setInstanseValue] = useState("");
 
   const [invalidVaule, setInvalidVaule] = useState(false);
 
@@ -85,7 +78,6 @@ export default function SignIn() {
 
   function checkAndNavigate() {
     if (authorized && phoneInWp) {
-      setLoading(false);
       let auhorizedUserIds = {
         IDINSTANCE: instanceInput,
         APITOKENINSTANSE: tokenInput,
@@ -112,7 +104,6 @@ export default function SignIn() {
         if (res) {
           if (res.data.existsWhatsapp) {
             setPhoneInWp(true);
-            setLoading(false);
           } else {
             setPhoneInWp(false);
           }
@@ -130,6 +121,8 @@ export default function SignIn() {
   function handleInputChange(e) {
     const value = e.target.value;
     setInstanceInput(value);
+    const userInput = e.target.value.replace(/\D/g, "");
+    setInstanseValue(userInput);
   }
 
   function handleInputChange2(e) {
@@ -159,7 +152,7 @@ export default function SignIn() {
           <LockOutlinedIcon />
         </Avatar>
         <Typography component="h1" variant="h5">
-          Sign in
+          Log In
         </Typography>
         <Box
           component="form"
@@ -170,6 +163,7 @@ export default function SignIn() {
           sx={{ mt: 1 }}
         >
           <TextField
+            value={instanseValue}
             ref={instanceREf}
             onChange={(e) => handleInputChange(e)}
             margin="normal"

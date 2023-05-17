@@ -1,7 +1,8 @@
-import { Routes, Route, BrowserRouter } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
+import { createContext, useState } from "react";
+
 import HomePage from "../Pages/Home/HomePage";
 import LoginPage from "../Pages/LogIn/LogInPage";
-import { createContext, useEffect, useState } from "react";
 
 export const USERIDS = createContext({
   IDINSTANCE: null,

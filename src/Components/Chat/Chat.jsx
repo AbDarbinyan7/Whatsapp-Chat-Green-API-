@@ -1,28 +1,24 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import ScrollableFeed from "react-scrollable-feed";
 
 import { Avatar, IconButton } from "@mui/material";
-
-import Groups2Icon from "@mui/icons-material/Groups2";
-import DonutLargeIcon from "@mui/icons-material/DonutLarge";
-import MessageIcon from "@mui/icons-material/Message";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
-import FilterListOutlinedIcon from "@mui/icons-material/FilterListOutlined";
 import EmojiEmotionsOutlinedIcon from "@mui/icons-material/EmojiEmotionsOutlined";
 import AttachFileOutlinedIcon from "@mui/icons-material/AttachFileOutlined";
 import KeyboardVoiceIcon from "@mui/icons-material/KeyboardVoice";
 import DoneAllOutlinedIcon from "@mui/icons-material/DoneAllOutlined";
-import "./Chat.scss";
-import axios from "axios";
-import ScrollContainer from "react-indiana-drag-scroll";
-import ScrollableFeed from "react-scrollable-feed";
+
 import {
   MessagesContext,
   USERIDS,
   UserContext,
   UsersContext,
 } from "../../Routes/AppRoutes";
-import { useNavigate } from "react-router-dom";
+
+import "./Chat.scss";
 
 export const convertTo24HourFormat = (timestamp) => {
   const date = new Date(null);
@@ -41,34 +37,14 @@ function Chat() {
   const { userIds, setUserIds } = useContext(USERIDS);
   const { usersContext, setUsersContext } = useContext(UsersContext);
 
-  const [smsState, setSmsState] = useState(null);
-  const [smsFlagState, setFlagSmsState] = useState();
   const [smsInputValue, setSmsInputValue] = useState();
   const [idSms, setIdSms] = useState();
-  const [receiptIdState, setReceiptIdState] = useState();
   const [isRequestPending, setIsRequestPending] = useState(false);
 
-  const chatRef = useRef(null);
   const navigate = useNavigate();
 
-  const el = document.querySelector(".chat__body__messages");
-
-  const padZero = (value) => {
-    return value < 10 ? `0${value}` : value;
-  };
-
-  // useEffect(() => {
-  //   if (receiptIdState) {
-  //     toDeleteNotivication(receiptIdState);
-  //   }
-  // }, [receiptIdState]);
-
   useEffect(() => {
-    console.log(messagesContext);
-  }, [messagesContext]);
-
-  useEffect(() => {
-    if (usersContext && usersContext.length == 1) {
+    if (usersContext && usersContext.length === 1) {
       setUserContext(usersContext[0]);
     }
   }, [usersContext]);
@@ -312,7 +288,7 @@ function Chat() {
         </div>
       </div>
       <ScrollableFeed className="chat__body">
-        <div className="chat__body__messages_list" ref={chatRef}>
+        <div className="chat__body__messages_list">
           {messagesContext.length !== 0 &&
             Array.isArray(messagesContext) &&
             messagesContext.map((sms, index) => {
@@ -321,8 +297,8 @@ function Chat() {
                   <div
                     key={index}
                     className={
-                      sms.type == "outgoing" ||
-                      (sms.type == "outgoingAPIMessageReceived" &&
+                      sms.type === "outgoing" ||
+                      (sms.type === "outgoingAPIMessageReceived" &&
                         sms.sendByApi)
                         ? "chat__body__messages_list__outgoing_sms"
                         : "chat__body__messages_list__outgoing_sms chat__body__messages_list__incoming_sms"
