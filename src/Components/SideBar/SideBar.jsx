@@ -1,8 +1,6 @@
 import React, { useContext } from "react";
-import ReactDOM from "react-dom";
 
-import { useEffect, useRef, useState } from "react";
-import Button from "@mui/material/Button";
+import { useEffect, useState } from "react";
 import { Avatar, IconButton } from "@mui/material";
 import Groups2Icon from "@mui/icons-material/Groups2";
 import DonutLargeIcon from "@mui/icons-material/DonutLarge";
@@ -10,9 +8,6 @@ import MessageIcon from "@mui/icons-material/Message";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import FilterListOutlinedIcon from "@mui/icons-material/FilterListOutlined";
-import EmojiEmotionsOutlinedIcon from "@mui/icons-material/EmojiEmotionsOutlined";
-import AttachFileOutlinedIcon from "@mui/icons-material/AttachFileOutlined";
-import KeyboardVoiceIcon from "@mui/icons-material/KeyboardVoice";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import LogoutIcon from "@mui/icons-material/Logout";
 
@@ -24,8 +19,6 @@ import {
   UserContext,
   UsersContext,
 } from "../../Routes/AppRoutes";
-import { Users } from "../../Pages/Home/HomePage";
-import axios from "axios";
 import { convertTo24HourFormat } from "../Chat/Chat";
 import { useNavigate } from "react-router-dom";
 
