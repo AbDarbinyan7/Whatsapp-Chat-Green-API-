@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useContext, useState, useRef, useEffect } from "react";
-import { Link as useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 import Avatar from "@mui/material/Avatar";
@@ -40,12 +40,6 @@ export default function SignIn() {
   useEffect(() => {
     checkAndNavigate();
   }, [authorized, phoneInWp]);
-
-  useEffect(() => {
-    // console.log(messagesContext);
-    // console.log(convertTo24HourFormat(Date.now()));
-    // console.log(new Date().setHours(19, 1, 0, 0) / 1000);
-  }, []);
 
   const toCheckIfUserAuthorized = (event) => {
     event?.preventDefault();
@@ -192,7 +186,6 @@ export default function SignIn() {
             pattern="[0-9]*"
             inputMode="numeric"
           />
-
           <Button
             onClick={() => toCheckIfUserAuthorized()}
             type="submit"
