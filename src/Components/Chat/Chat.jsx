@@ -92,7 +92,7 @@ function Chat() {
         }
       )
       .then((res) => {
-        if (res.data) {
+        if (res.data && res.data.length) {
           res.data.map((sms) => {
             let oldMessage = {
               chatId: sms?.chatId,
