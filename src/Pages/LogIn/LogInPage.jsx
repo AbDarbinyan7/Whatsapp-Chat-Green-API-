@@ -21,10 +21,6 @@ import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const theme = createTheme();
-
-toast.configure();
-
 export default function SignIn() {
   const { userIds, setUserIds } = useContext(USERIDS);
 
@@ -34,6 +30,7 @@ export default function SignIn() {
   const [phoneInWp, setPhoneInWp] = useState(null);
   const [authorized, setAuthorized] = useState(null);
   const [value, setValue] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const [invalidVaule, setInvalidVaule] = useState(false);
 
@@ -50,6 +47,12 @@ export default function SignIn() {
   useEffect(() => {
     checkAndNavigate();
   }, [authorized, phoneInWp]);
+
+  useEffect(() => {
+    // console.log(messagesContext);
+    // console.log(convertTo24HourFormat(Date.now()));
+    // console.log(new Date().setHours(19, 1, 0, 0) / 1000);
+  }, []);
 
   const toCheckIfUserAuthorized = (event) => {
     event?.preventDefault();
@@ -82,6 +85,7 @@ export default function SignIn() {
 
   function checkAndNavigate() {
     if (authorized && phoneInWp) {
+      setLoading(false);
       let auhorizedUserIds = {
         IDINSTANCE: instanceInput,
         APITOKENINSTANSE: tokenInput,
@@ -108,6 +112,7 @@ export default function SignIn() {
         if (res) {
           if (res.data.existsWhatsapp) {
             setPhoneInWp(true);
+            setLoading(false);
           } else {
             setPhoneInWp(false);
           }
@@ -186,7 +191,7 @@ export default function SignIn() {
             onChange={(e) => handleInputChange3(e)}
             ref={phoneRef}
             margin="normal"
-            label="Chat ID (please write only numbers)"
+            label="Recipients phone number"
             variant="outlined"
             fullWidth
             error={phoneInWp === false}
@@ -201,13 +206,11 @@ export default function SignIn() {
             variant="contained"
             sx={{ mt: 3, mb: 2 }}
           >
-            Sign In
+            Log In
           </Button>
           {invalidVaule && (
             <Box mt={1}>
-              <Typography color="error">
-                One or more values are invalid.
-              </Typography>
+              <Typography color="error">User is not authorized.</Typography>
             </Box>
           )}
         </Box>

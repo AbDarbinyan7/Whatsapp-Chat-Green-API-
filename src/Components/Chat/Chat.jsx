@@ -16,12 +16,27 @@ import "./Chat.scss";
 import axios from "axios";
 import ScrollContainer from "react-indiana-drag-scroll";
 import ScrollableFeed from "react-scrollable-feed";
-import { USERIDS, UserContext, UsersContext } from "../../Routes/AppRoutes";
+import {
+  MessagesContext,
+  USERIDS,
+  UserContext,
+  UsersContext,
+} from "../../Routes/AppRoutes";
 import { useNavigate } from "react-router-dom";
 
-const messagesArr = [];
+export const convertTo24HourFormat = (timestamp) => {
+  const date = new Date(null);
+  date.setSeconds(timestamp);
+
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  const formattedTime = `${hours}:${minutes}`;
+
+  return formattedTime;
+};
 
 function Chat() {
+  const { messagesContext, setMessagesContext } = useContext(MessagesContext);
   const { userContext, setUserContext } = useContext(UserContext);
   const { userIds, setUserIds } = useContext(USERIDS);
   const { usersContext, setUsersContext } = useContext(UsersContext);
@@ -29,9 +44,9 @@ function Chat() {
   const [smsState, setSmsState] = useState(null);
   const [smsFlagState, setFlagSmsState] = useState();
   const [smsInputValue, setSmsInputValue] = useState();
-  const [messagesArr, setMessagesArr] = useState([]);
   const [idSms, setIdSms] = useState();
-  const [receiptId, setReceiptId] = useState();
+  const [receiptIdState, setReceiptIdState] = useState();
+  const [isRequestPending, setIsRequestPending] = useState(false);
 
   const chatRef = useRef(null);
   const navigate = useNavigate();
@@ -41,6 +56,16 @@ function Chat() {
   const padZero = (value) => {
     return value < 10 ? `0${value}` : value;
   };
+
+  // useEffect(() => {
+  //   if (receiptIdState) {
+  //     toDeleteNotivication(receiptIdState);
+  //   }
+  // }, [receiptIdState]);
+
+  useEffect(() => {
+    console.log(messagesContext);
+  }, [messagesContext]);
 
   useEffect(() => {
     if (usersContext && usersContext.length == 1) {
@@ -56,8 +81,7 @@ function Chat() {
     if (userIds) {
       if (userIds.IDINSTANCE && userIds.APITOKENINSTANSE && userIds.CHATID) {
         getInfoContact();
-
-        // toGetAllMessages();
+        toGetAllMessages();
       }
     }
   }, [userIds]);
@@ -67,6 +91,53 @@ function Chat() {
       toSmsPushInArr(idSms, smsInputValue);
     }
   }, [idSms, smsInputValue]);
+
+  useEffect(() => {
+    if (userIds) {
+      if (userIds.IDINSTANCE && userIds.APITOKENINSTANSE && userIds.CHATID) {
+        const interval = setInterval(() => {
+          toReseiveNotification();
+        }, 10000);
+        return () => {
+          clearInterval(interval);
+        };
+      }
+    }
+  }, [userIds]);
+
+  function toGetAllMessages() {
+    let allmessagesArr = [];
+    axios
+      .post(
+        `https://api.green-api.com/waInstance${userIds?.IDINSTANCE}/getChatHistory/${userIds?.APITOKENINSTANSE}`,
+        {
+          chatId: userIds?.CHATID,
+          count: 50,
+        }
+      )
+      .then((res) => {
+        if (res.data) {
+          res.data.map((sms) => {
+            let oldMessage = {
+              chatId: sms?.chatId,
+              idInstance: userIds?.IDINSTANCE,
+              idMessage: sms?.idMessage,
+              textMessage: sms?.textMessage,
+              timestamp: sms?.timestamp,
+              type: sms?.type,
+            };
+            allmessagesArr.push(oldMessage);
+          });
+          allmessagesArr.reverse();
+          setMessagesContext(allmessagesArr);
+        }
+      })
+      .catch((error) => {
+        if (error) {
+          navigate("/");
+        }
+      });
+  }
 
   function getInfoContact() {
     axios
@@ -86,6 +157,11 @@ function Chat() {
           setUsersContext([...usersContext, userInfo]);
           localStorage.setItem("users", JSON.stringify(userInfo));
         }
+      })
+      .catch((error) => {
+        if (error) {
+          console.log("error", error);
+        }
       });
   }
 
@@ -99,76 +175,67 @@ function Chat() {
     }
   }
 
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     toReseiveNotification();
-  //   }, 8000);
-
-  //   return () => {
-  //     clearInterval(interval);
-  //   };
-  // }, [messagesArr]);
-
   function toReseiveNotification() {
+    if (isRequestPending) {
+      return;
+    }
+    setIsRequestPending(true);
     axios
       .get(
         `https://api.green-api.com/waInstance${userIds?.IDINSTANCE}/receiveNotification/${userIds?.APITOKENINSTANSE}`
       )
       .then((res) => {
-        if (res) {
-          if (res.data.body.typeWebhook === "incomingMessageReceived") {
-            let resDataBody = res?.data?.body;
+        if (res.data) {
+          if (
+            res.data.body.typeWebhook &&
+            res.data.body.typeWebhook === "incomingMessageReceived" &&
+            res.data.body.senderData.chatId &&
+            res.data.body.senderData.chatId === userIds.CHATID
+          ) {
             let notificSms = {
-              chatId: resDataBody?.senderData?.chatId,
+              chatId: res?.data?.body?.senderData?.chatId,
               textMessage:
-                resDataBody?.messageData?.textMessageData?.textMessage,
-              idInstance: resDataBody?.instanceData?.idInstance,
-              idMessage: resDataBody?.idMessage,
+                res?.data?.body?.messageData?.textMessageData?.textMessage,
+              idInstance: res?.data?.body?.instanceData?.idInstance,
+              idMessage: res?.data?.body?.idMessage,
               statusMessage: "read",
-              timestamp: resDataBody?.timestamp,
-              type: resDataBody?.typeWebhook,
+              timestamp: res?.data?.body?.timestamp,
+              type: res?.data?.body?.typeWebhook,
             };
-            setMessagesArr([...messagesArr, notificSms]);
+            setMessagesContext((messagesContext) => [
+              ...messagesContext,
+              notificSms,
+            ]);
+            toDeleteNotivication(res.data.receiptId);
+          } else {
+            toDeleteNotivication(res.data.receiptId);
           }
-          axios
-            .delete(
-              `https://api.green-api.com/waInstance${userIds?.IDINSTANCE}/deleteNotification/${userIds?.APITOKENINSTANSE}/${res.data.receiptId}`
-            )
-            .then((res) => {
-              if (res.data.result) {
-                toReseiveNotification();
-              }
-            });
         }
+      })
+      .catch((error) => {
+        if (error) {
+          console.log("error", error);
+        }
+      })
+      .finally(() => {
+        setIsRequestPending(false);
       });
   }
 
-  function toGetAllMessages() {
-    let allMessagesArr = [];
+  function toDeleteNotivication(id) {
     axios
-      .post(
-        `https://api.green-api.com/waInstance${userIds?.IDINSTANCE}/getChatHistory/${userIds?.APITOKENINSTANSE}`,
-        {
-          chatId: userIds?.CHATID,
-          count: 20,
-        }
+      .delete(
+        `https://api.green-api.com/waInstance${userIds?.IDINSTANCE}/deleteNotification/${userIds?.APITOKENINSTANSE}/${id}`
       )
       .then((res) => {
-        if (res.data) {
-          res.data.map((sms) => {
-            let oldMessage = {
-              chatId: sms?.chatId,
-              idInstance: userIds?.IDINSTANCE,
-              idMessage: sms?.idMessage,
-              textMessage: sms?.textMessage,
-              timestamp: sms?.timestamp,
-              type: sms?.type,
-            };
-            allMessagesArr.push(oldMessage);
-          });
+        if (res.data.result) {
+          toReseiveNotification();
         }
-        allMessagesArr.reverse();
-        setMessagesArr(allMessagesArr);
+      })
+      .catch((error) => {
+        if (error) {
+          console.log("error", error);
+        }
       });
   }
 
@@ -181,12 +248,12 @@ function Chat() {
   }
 
   function toSmsPushInArr(id, text) {
-    setMessagesArr([
-      ...messagesArr,
+    setMessagesContext((messagesContext) => [
+      ...messagesContext,
       {
         chatId: userIds?.CHATID,
         textMessage: text,
-        time: toGetLocalTmeNow(),
+        timestamp: toGetLocalTmeNow(),
         type: "outgoing",
         idMessage: idSms,
       },
@@ -211,28 +278,15 @@ function Chat() {
   }
 
   const toGetLocalTmeNow = () => {
-    const currentTime = new Date();
-    const timestamp = currentTime.getTime();
+    const date = new Date();
+    const hours = date.getHours().toString().padStart(2, "0");
+    const minutes = date.getMinutes().toString().padStart(2, "0");
 
-    const timeString = new Date(timestamp).toLocaleTimeString("en-US", {
-      hour12: false,
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const convertTo24HourFormat = (timestamp) => {
-    const timeOptions = {
-      hour12: false,
-      hour: "2-digit",
-      minute: "2-digit",
-    };
-
-    const timeString = new Date(timestamp * 1000).toLocaleTimeString(
-      "en-US",
-      timeOptions
-    );
-    return `${timeString}`;
+    if (hours === "24") {
+      hours = "00";
+    }
+    const currentTime = `${hours}:${minutes}`;
+    return currentTime;
   };
 
   return (
@@ -259,9 +313,9 @@ function Chat() {
       </div>
       <ScrollableFeed className="chat__body">
         <div className="chat__body__messages_list" ref={chatRef}>
-          {messagesArr.length !== 0 &&
-            Array.isArray(messagesArr) &&
-            messagesArr.map((sms, index) => {
+          {messagesContext.length !== 0 &&
+            Array.isArray(messagesContext) &&
+            messagesContext.map((sms, index) => {
               if (sms.textMessage) {
                 return (
                   <div
@@ -277,7 +331,9 @@ function Chat() {
                     {sms.textMessage}
                     {
                       <span className="chat__body__messages_list__outgoing_sms__timestamp">
-                        {convertTo24HourFormat(sms.timestamp)}
+                        {typeof sms.timestamp === "number"
+                          ? convertTo24HourFormat(sms.timestamp)
+                          : sms.timestamp}
                         {sms.type !== "outgoing" ||
                           (sms.type !== "outgoingAPIMessageReceived" && (
                             <DoneAllOutlinedIcon

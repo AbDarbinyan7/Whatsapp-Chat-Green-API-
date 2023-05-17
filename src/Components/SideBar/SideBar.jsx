@@ -14,25 +14,61 @@ import EmojiEmotionsOutlinedIcon from "@mui/icons-material/EmojiEmotionsOutlined
 import AttachFileOutlinedIcon from "@mui/icons-material/AttachFileOutlined";
 import KeyboardVoiceIcon from "@mui/icons-material/KeyboardVoice";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import LogoutIcon from "@mui/icons-material/Logout";
 
 import "./SideBar.scss";
-import { USERIDS, UserContext, UsersContext } from "../../Routes/AppRoutes";
+
+import {
+  MessagesContext,
+  USERIDS,
+  UserContext,
+  UsersContext,
+} from "../../Routes/AppRoutes";
 import { Users } from "../../Pages/Home/HomePage";
 import axios from "axios";
+import { convertTo24HourFormat } from "../Chat/Chat";
+import { useNavigate } from "react-router-dom";
 
 function SideBar() {
+  const { messagesContext, setMessagesContext } = useContext(MessagesContext);
   const { userContext, setUserContext } = useContext(UserContext);
   const { usersContext, setUsersContext } = useContext(UsersContext);
   const { userIds, setUserIds } = useContext(USERIDS);
 
+  const navigate = useNavigate();
+
+  const [lastMessageAndTime, setLastMessageAndTime] = useState();
+
   useEffect(() => {
-    console.log(usersContext);
-  }, [usersContext]);
+    if (messagesContext.length) {
+      let lastMessage = messagesContext.map((sms, i) => {
+        if (i === messagesContext.length - 1) {
+          let timeAndSms = {
+            lastMessage: sms.textMessage,
+            timestamp:
+              typeof sms.timestamp === "number"
+                ? convertTo24HourFormat(sms.timestamp)
+                : sms.timestamp,
+          };
+          return setLastMessageAndTime(timeAndSms);
+        }
+      });
+    }
+  }, [messagesContext]);
 
   return (
     <div className="side_bar">
       <div className="side_bar__admin_panel">
-        <Avatar />
+        <div className="side_bar__admin_panel__avatar_log_out">
+          <Avatar />
+          <IconButton
+            onClick={() => {
+              navigate("/");
+            }}
+          >
+            <LogoutIcon color="action" />
+          </IconButton>
+        </div>
         <div className="side_bar__admin_panel__links">
           <IconButton>
             <Groups2Icon />
@@ -78,11 +114,11 @@ function SideBar() {
                   <div className="side_bar__users__user__description__name_time">
                     <p>{user?.name}</p>
                     <div className="side_bar__users__user__description__name_time__time">
-                      02:42
+                      {lastMessageAndTime?.timestamp}
                     </div>
                   </div>
                   <div className="side_bar__users__user__description__text_nots">
-                    <p>Last message...</p>
+                    <p>{lastMessageAndTime?.lastMessage}</p>
                   </div>
                 </div>
                 <div className="side_bar__users__user__underline"></div>

@@ -11,22 +11,26 @@ export const USERIDS = createContext({
 
 export const UsersContext = createContext(null);
 export const UserContext = createContext([]);
+export const MessagesContext = createContext([]);
 
 function AppRoutes() {
   const [userIds, setUserIds] = useState(null);
   const [userContext, setUserContext] = useState();
   const [usersContext, setUsersContext] = useState([]);
+  const [messagesContext, setMessagesContext] = useState([]);
 
   return (
     <USERIDS.Provider value={{ userIds, setUserIds }}>
-      <UsersContext.Provider value={{ usersContext, setUsersContext }}>
-        <UserContext.Provider value={{ userContext, setUserContext }}>
-          <Routes>
-            <Route path={"/"} element={<LoginPage />} />
-            <Route path={"/whatsapp"} element={<HomePage />} />
-          </Routes>
-        </UserContext.Provider>
-      </UsersContext.Provider>
+      <MessagesContext.Provider value={{ messagesContext, setMessagesContext }}>
+        <UsersContext.Provider value={{ usersContext, setUsersContext }}>
+          <UserContext.Provider value={{ userContext, setUserContext }}>
+            <Routes>
+              <Route path={"/"} element={<LoginPage />} />
+              <Route path={"/whatsapp"} element={<HomePage />} />
+            </Routes>
+          </UserContext.Provider>
+        </UsersContext.Provider>
+      </MessagesContext.Provider>
     </USERIDS.Provider>
   );
 }
