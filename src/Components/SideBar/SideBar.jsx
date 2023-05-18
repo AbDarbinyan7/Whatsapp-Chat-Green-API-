@@ -32,7 +32,10 @@ function SideBar() {
   const navigate = useNavigate();
 
   const [lastMessageAndTime, setLastMessageAndTime] = useState();
-  const [userAvatar, setUserAvatar] = useState();
+  const [userAvatarName, setUserAvatarName] = useState({
+    name: null,
+    avatar: null,
+  });
   const [userPhone, setUserPhone] = useState();
 
   useEffect(() => {
@@ -86,7 +89,11 @@ function SideBar() {
           if (res) {
             if (res.data) {
               if (res.data.avatar) {
-                setUserAvatar(res.data.avatar);
+                setUserAvatarName((userAvatarName) => ({
+                  ...userAvatarName,
+                  name: res.data.name ? res.data.name : null,
+                  avatar: res.data.avatar,
+                }));
               }
             }
           }
@@ -98,7 +105,11 @@ function SideBar() {
     <div className="side_bar">
       <div className="side_bar__admin_panel">
         <div className="side_bar__admin_panel__avatar_log_out">
-          <Avatar src={userAvatar ? userAvatar : ""} alt="user avatar" />
+          <Avatar
+            src={userAvatarName?.avatar ? userAvatarName?.avatar : ""}
+            alt="user avatar"
+          />
+          {userAvatarName?.name && <p>{userAvatarName?.name}</p>}
           <Link to={"/"}>
             <IconButton>
               <LogoutIcon color="action" />

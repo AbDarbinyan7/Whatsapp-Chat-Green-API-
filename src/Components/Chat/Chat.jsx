@@ -164,7 +164,6 @@ function Chat() {
       )
       .then((res) => {
         if (res.data) {
-          console.log(res.data);
           if (
             res.data.body.typeWebhook &&
             res.data.body.typeWebhook === "incomingMessageReceived" &&
