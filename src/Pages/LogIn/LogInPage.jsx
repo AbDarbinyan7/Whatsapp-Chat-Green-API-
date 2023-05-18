@@ -12,10 +12,12 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 
-import { USERIDS } from "../../Routes/AppRoutes";
+import { MessagesContext, USERIDS, UsersContext } from "../../Routes/AppRoutes";
 
 export default function SignIn() {
   const { userIds, setUserIds } = useContext(USERIDS);
+  const { messagesContext, setMessagesContext } = useContext(MessagesContext);
+  const { usersContext, setUsersContext } = useContext(UsersContext);
 
   const [instanceInput, setInstanceInput] = useState("");
   const [tokenInput, setTokenInput] = useState("");
@@ -34,7 +36,15 @@ export default function SignIn() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    setMessagesContext([]);
+    setUsersContext([]);
     localStorage.clear();
+    let userIdsClear = {
+      IDINSTANCE: null,
+      APITOKENINSTANSE: null,
+      CHATID: null,
+    };
+    setUserIds(userIdsClear);
   }, []);
 
   useEffect(() => {

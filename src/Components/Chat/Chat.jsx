@@ -44,7 +44,7 @@ function Chat() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (usersContext && usersContext.length === 1) {
+    if (usersContext && Array.isArray(messagesContext) && usersContext.length) {
       setUserContext(usersContext[0]);
     }
   }, [usersContext]);
@@ -92,20 +92,22 @@ function Chat() {
         }
       )
       .then((res) => {
-        if (res.data && res.data.length) {
-          res.data.map((sms) => {
-            let oldMessage = {
-              chatId: sms?.chatId,
-              idInstance: userIds?.IDINSTANCE,
-              idMessage: sms?.idMessage,
-              textMessage: sms?.textMessage,
-              timestamp: sms?.timestamp,
-              type: sms?.type,
-            };
-            allmessagesArr.push(oldMessage);
-          });
-          allmessagesArr.reverse();
-          setMessagesContext(allmessagesArr);
+        if (res.data) {
+          if (res.data && res.data.length) {
+            res.data.map((sms) => {
+              let oldMessage = {
+                chatId: sms?.chatId,
+                idInstance: userIds?.IDINSTANCE,
+                idMessage: sms?.idMessage,
+                textMessage: sms?.textMessage,
+                timestamp: sms?.timestamp,
+                type: sms?.type,
+              };
+              allmessagesArr.push(oldMessage);
+            });
+            allmessagesArr.reverse();
+            setMessagesContext(allmessagesArr);
+          }
         }
       })
       .catch((error) => {
@@ -162,6 +164,7 @@ function Chat() {
       )
       .then((res) => {
         if (res.data) {
+          console.log(res.data);
           if (
             res.data.body.typeWebhook &&
             res.data.body.typeWebhook === "incomingMessageReceived" &&
@@ -289,8 +292,9 @@ function Chat() {
       </div>
       <ScrollableFeed className="chat__body">
         <div className="chat__body__messages_list">
-          {messagesContext.length !== 0 &&
+          {messagesContext &&
             Array.isArray(messagesContext) &&
+            messagesContext.length !== 0 &&
             messagesContext.map((sms, index) => {
               if (sms.textMessage) {
                 return (

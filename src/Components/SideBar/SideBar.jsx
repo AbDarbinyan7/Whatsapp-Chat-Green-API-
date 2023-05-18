@@ -20,7 +20,8 @@ import {
   UsersContext,
 } from "../../Routes/AppRoutes";
 import { convertTo24HourFormat } from "../Chat/Chat";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 function SideBar() {
   const { messagesContext, setMessagesContext } = useContext(MessagesContext);
@@ -31,9 +32,11 @@ function SideBar() {
   const navigate = useNavigate();
 
   const [lastMessageAndTime, setLastMessageAndTime] = useState();
+  const [userAvatar, setUserAvatar] = useState();
+  const [userPhone, setUserPhone] = useState();
 
   useEffect(() => {
-    if (messagesContext.length) {
+    if (messagesContext && messagesContext.length) {
       let lastMessage = messagesContext.map((sms, i) => {
         if (i === messagesContext.length - 1) {
           let timeAndSms = {
@@ -49,18 +52,58 @@ function SideBar() {
     }
   }, [messagesContext]);
 
+  useEffect(() => {
+    if (
+      userIds &&
+      userIds?.IDINSTANCE &&
+      userIds?.APITOKENINSTANSE &&
+      userIds.CHATID
+    ) {
+      axios
+        .get(
+          `https://api.green-api.com/waInstance${userIds?.IDINSTANCE}/GetSettings/${userIds?.APITOKENINSTANSE}`
+        )
+        .then((res) => {
+          if (res.data) {
+            if (res.data.wid) {
+              setUserPhone(res.data.wid);
+            }
+          }
+        });
+    }
+  }, [userIds]);
+
+  useEffect(() => {
+    if (userPhone) {
+      axios
+        .post(
+          `https://api.green-api.com/waInstance${userIds?.IDINSTANCE}/GetContactInfo/${userIds?.APITOKENINSTANSE}`,
+          {
+            chatId: userPhone,
+          }
+        )
+        .then((res) => {
+          if (res) {
+            if (res.data) {
+              if (res.data.avatar) {
+                setUserAvatar(res.data.avatar);
+              }
+            }
+          }
+        });
+    }
+  }, [userPhone]);
+
   return (
     <div className="side_bar">
       <div className="side_bar__admin_panel">
         <div className="side_bar__admin_panel__avatar_log_out">
-          <Avatar />
-          <IconButton
-            onClick={() => {
-              navigate("/");
-            }}
-          >
-            <LogoutIcon color="action" />
-          </IconButton>
+          <Avatar src={userAvatar ? userAvatar : ""} alt="user avatar" />
+          <Link to={"/"}>
+            <IconButton>
+              <LogoutIcon color="action" />
+            </IconButton>
+          </Link>
         </div>
         <div className="side_bar__admin_panel__links">
           <IconButton>
@@ -102,7 +145,7 @@ function SideBar() {
                   setUserContext(user);
                 }}
               >
-                <Avatar src={user.avatar} alt="user Avatar" />
+                <Avatar src={user?.avatar} alt="user Avatar" />
                 <div className="side_bar__users__user__description">
                   <div className="side_bar__users__user__description__name_time">
                     <p>{user?.name}</p>
